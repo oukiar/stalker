@@ -988,6 +988,7 @@ def downloadPagesLikedOld(driver,userid):
 def downloadPagesLiked(driver,userlink):
     driver.get('https://www.facebook.com/'+userlink+'/likes?pnref=lhc')
     
+    
     if "Sorry, we couldn't find any results for this search." in driver.page_source:
         print "Pages liked list is hidden"
         lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
@@ -1157,27 +1158,18 @@ def parsePlacesLiked(html):
 from bs4 import BeautifulSoup, Tag
 
 def parsePagesLiked(html):
-    #print "HTML: ", html
-    soup = BeautifulSoup(html)  
-    pageName = soup.findAll("div", {"class" : "fsl fwb fcb"})
     
-    pageCategory = soup.findAll("div", {"class" : "_5k4f"})
-    tempList = []
-    count=0
-    r = re.compile('a href="(.*?)\?ref=')
-    for x in pageName:
+    soup = BeautifulSoup(html)  
+    likes = soup.findAll("div", {"class" : "fsl fwb fcb"})
+    
+    for like in likes:
+        for ahref in like:
+            for liketitle in ahref:
+                if liketitle.encode('utf8')[0] == '<':
+                    continue
+                print liketitle.encode('utf8')
         
-        #print x
-        
-        for y in x:
-            #print y
-            for z in y:
-                print z
-        
-        
-        raw_input()
-        
-    return tempList
+    return []
         
     '''
         m = r.search(str(x))
