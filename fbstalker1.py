@@ -35,8 +35,8 @@ requests.adapters.DEFAULT_RETRIES = 10
 h = httplib2.Http(".cache")
 
 
-facebook_username = "oukiar@gmail.com"
-facebook_password = "xberry2000"
+facebook_username = ""
+facebook_password = ""
 
 global uid
 uid = ""
