@@ -34,13 +34,19 @@ requests.adapters.DEFAULT_RETRIES = 10
 
 h = httplib2.Http(".cache")
 
+try:
+    #new way to get user and pass
+    myinfo = open("account.txt").read().splitlines() 
+    print myinfo
 
-#new way to get user and pass
-myinfo = open("account.txt").read().splitlines() 
-print myinfo
+    facebook_username = myinfo[0].split(":")[1]
+    facebook_password = myinfo[1].split(":")[1]
+except:
+    print "Username: "
+    facebook_username = raw_input()
+    print "Password: "
+    facebook_password = raw_input()
 
-facebook_username = myinfo[0].split(":")[1]
-facebook_password = myinfo[1].split(":")[1]
 
 global uid
 uid = ""
