@@ -35,8 +35,12 @@ requests.adapters.DEFAULT_RETRIES = 10
 h = httplib2.Http(".cache")
 
 
-facebook_username = ""
-facebook_password = ""
+#new way to get user and pass
+myinfo = open("account.txt").read().splitlines() 
+print myinfo
+
+facebook_username = myinfo[0].split(":")[1]
+facebook_password = myinfo[1].split(":")[1]
 
 global uid
 uid = ""
@@ -73,14 +77,14 @@ def createDatabase():
     sql7 = 'create table if not exists photosBy (sourceUID TEXT, description TEXT, photoURL TEXT unique, pageURL TEXT, username TEXT)'
     
     c.execute(sql)
-        c.execute(sql1)
-        c.execute(sql2)
-        c.execute(sql3)
-        c.execute(sql4)
-        c.execute(sql5)
-        c.execute(sql6)
-        c.execute(sql7)
-        conn.commit()
+    c.execute(sql1)
+    c.execute(sql2)
+    c.execute(sql3)
+    c.execute(sql4)
+    c.execute(sql5)
+    c.execute(sql6)
+    c.execute(sql7)
+    conn.commit()
 
 createDatabase()
 conn = sqlite3.connect('facebook.db')
@@ -93,9 +97,9 @@ def createMaltego(username):
     edgeList = []
 
     while(start<totalCount):
-            nodeList.append("") 
-            edgeList.append("")
-            start+=1
+        nodeList.append("") 
+        edgeList.append("")
+        start+=1
 
     nodeList[0] = g.add_node('Facebook_'+username)
     nodeList[0]['node'] = createNodeFacebook(username,"https://www.facebook.com/"+username,uid)
@@ -119,16 +123,16 @@ def createMaltego(username):
                 nodeList[counter1]['node'] = createNodeFacebook(i[0],'https://www.facebook.com/'+str(i[0]),nodeUid)
                 edgeList[counter2] = g.add_edge(nodeList[0], nodeList[counter1])
                 edgeList[counter2]['link'] = createLink('Facebook')
-                    nodeList.append("")
+                nodeList.append("")
                 edgeList.append("")
-                    counter1+=1
-                    counter2+=1
+                counter1+=1
+                counter2+=1
             except IndexError:
                 continue
     if len(nodeUid)>0:  
         parser = GraphMLParser()
         if not os.path.exists(os.getcwd()+'/Graphs'):
-                os.makedirs(os.getcwd()+'/Graphs')
+            os.makedirs(os.getcwd()+'/Graphs')
         filename = 'Graphs/Graph1.graphml'
         parser.write(g, "Graphs/Graph1.graphml")
         cleanUpGraph(filename)
@@ -198,19 +202,19 @@ def createNodeFacebook(displayName,url,uid):
     return xmlString
 
 def createNodeUrl(displayName,url):
-        xmlString = '<mtg:MaltegoEntity xmlns:mtg="http://maltego.paterva.com/xml/mtgx" type="maltego.URL">'
-        xmlString += '<mtg:Properties>'
-        xmlString += '<mtg:Property displayName="'+displayName+'" hidden="false" name="short-title" nullable="true" readonly="false" type="string">'
-        xmlString += '<mtg:Value>'+displayName+'</mtg:Value>'
-        xmlString += '</mtg:Property>'
-        xmlString += '<mtg:Property displayName="'+displayName+'" hidden="false" name="url" nullable="true" readonly="false" type="url">'  
-        xmlString += '<mtg:Value>'+displayName+'</mtg:Value>'
-        xmlString += '</mtg:Property>'
-        xmlString += '<mtg:Property displayName="Title" hidden="false" name="title" nullable="true" readonly="false" type="string">'
-        xmlString += '<mtg:Value/>'    
-        xmlString += '</mtg:Property>'
-        xmlString += '</mtg:Properties>'
-        xmlString += '</mtg:MaltegoEntity>'
+    xmlString = '<mtg:MaltegoEntity xmlns:mtg="http://maltego.paterva.com/xml/mtgx" type="maltego.URL">'
+    xmlString += '<mtg:Properties>'
+    xmlString += '<mtg:Property displayName="'+displayName+'" hidden="false" name="short-title" nullable="true" readonly="false" type="string">'
+    xmlString += '<mtg:Value>'+displayName+'</mtg:Value>'
+    xmlString += '</mtg:Property>'
+    xmlString += '<mtg:Property displayName="'+displayName+'" hidden="false" name="url" nullable="true" readonly="false" type="url">'  
+    xmlString += '<mtg:Value>'+displayName+'</mtg:Value>'
+    xmlString += '</mtg:Property>'
+    xmlString += '<mtg:Property displayName="Title" hidden="false" name="title" nullable="true" readonly="false" type="string">'
+    xmlString += '<mtg:Value/>'    
+    xmlString += '</mtg:Property>'
+    xmlString += '</mtg:Properties>'
+    xmlString += '</mtg:MaltegoEntity>'
     return xmlString
 
 def createNodeLocation(lat,lng):
@@ -269,9 +273,9 @@ def cleanUpGraph(filename):
 
 def normalize(s):
     if type(s) == unicode: 
-            return s.encode('utf8', 'ignore')
+        return s.encode('utf8', 'ignore')
     else:
-            return str(s)
+        return str(s)
 
 def findUser(findName):
     stmt = "SELECT uid,current_location,username,name FROM user WHERE contains('"+findName+"')"
@@ -285,9 +289,7 @@ def findUser(findName):
         count+=1
 
 def convertUser2ID2(driver,username):
-    
     return username
-    
     url="http://graph.facebook.com/"+username
     resp, content = h.request(url, "GET")
     if resp.status==200:
@@ -295,8 +297,6 @@ def convertUser2ID2(driver,username):
         if len(results['id'])>0:
             fbid = results['id']
             return fbid
-    else:
-        print "Bad status: " + content
 
 def convertUser2ID(username):
     stmt = "SELECT uid,current_location,username,name FROM user WHERE username=('"+username+"')"
@@ -826,22 +826,22 @@ def downloadTimeline(username):
         lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
         match=False
         while(match==False):
-                lastCount = lenOfPage
-                time.sleep(3)
-                lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
-                if lastCount==lenOfPage:
-            print "[*] Looking for 'Show Older Stories' Link"
-            try:
-                clickLink = WebDriverWait(driver, 1).until(lambda driver : driver.find_element_by_link_text('Show Older Stories'))
-                if clickLink:
-                    print "[*] Clicked 'Show Older Stories' Link"
-                    driver.find_element_by_link_text('Show Older Stories').click()
-                else:
-                    print "[*] Indexing Timeline"
-                    break
-                                match=True
-            except TimeoutException:                
-                match = True
+            lastCount = lenOfPage
+            time.sleep(3)
+            lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+            if lastCount==lenOfPage:
+                print "[*] Looking for 'Show Older Stories' Link"
+                try:
+                    clickLink = WebDriverWait(driver, 1).until(lambda driver : driver.find_element_by_link_text('Show Older Stories'))
+                    if clickLink:
+                        print "[*] Clicked 'Show Older Stories' Link"
+                        driver.find_element_by_link_text('Show Older Stories').click()
+                    else:
+                        print "[*] Indexing Timeline"
+                        break
+                    match=True
+                except TimeoutException:                
+                    match = True
     return driver.page_source
 
 
@@ -969,8 +969,25 @@ def downloadPhotosLiked(driver,userid):
     return driver.page_source
     
 
-def downloadPagesLiked(driver,userid):
+def downloadPagesLikedOld(driver,userid):
     driver.get('https://www.facebook.com/search/'+str(userid)+'/pages-liked')
+    
+    '''https://www.facebook.com/anna.bonita.96/likes?pnref=lhc'''
+    if "Sorry, we couldn't find any results for this search." in driver.page_source:
+        print "Pages liked list is hidden"
+        lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+        match=False
+        while(match==False):
+                time.sleep(3)
+                lastCount = lenOfPage
+                lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+                if lastCount==lenOfPage:
+                        match=True
+    return driver.page_source
+    
+def downloadPagesLiked(driver,userlink):
+    driver.get('https://www.facebook.com/'+userlink+'/likes?pnref=lhc')
+    
     if "Sorry, we couldn't find any results for this search." in driver.page_source:
         print "Pages liked list is hidden"
         lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
@@ -990,14 +1007,14 @@ def downloadFriends(driver,userid):
         return ""
     else:
         #assert "Friends of " in driver.title
+        lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+        match=False
+        while(match==False):
+            time.sleep(3)
+            lastCount = lenOfPage
             lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
-            match=False
-            while(match==False):
-                    time.sleep(3)
-                    lastCount = lenOfPage
-                    lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
-                    if lastCount==lenOfPage:
-                            match=True
+            if lastCount==lenOfPage:
+                match=True
         return driver.page_source
 
 def downloadAppsUsed(driver,userid):
@@ -1006,14 +1023,14 @@ def downloadAppsUsed(driver,userid):
         print "[!] Apps used list is hidden"
         return ""
     else:
+        lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+        match=False
+        while(match==False):
+            time.sleep(3)
+            lastCount = lenOfPage
             lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
-            match=False
-            while(match==False):
-                    time.sleep(3)
-                    lastCount = lenOfPage
-                    lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
-                    if lastCount==lenOfPage:
-                            match=True
+            if lastCount==lenOfPage:
+                match=True
         return driver.page_source
 
 def parseUserInfo(html):
@@ -1124,7 +1141,7 @@ def parsePlacesVisited(html):
 
 def parsePlacesLiked(html):
     soup = BeautifulSoup(html)  
-    pageName = soup.findAll("div", {"class" : "_zs fwb"})
+    pageName = soup.findAll("div", {"class" : "fsl fwb fcb"})
     pageCategory = soup.findAll("div", {"class" : "_dew _dj_"})
     tempList = []
     count=0
@@ -1137,21 +1154,39 @@ def parsePlacesLiked(html):
         count+=1
     return tempList
 
+from bs4 import BeautifulSoup, Tag
 
 def parsePagesLiked(html):
+    #print "HTML: ", html
     soup = BeautifulSoup(html)  
-    pageName = soup.findAll("div", {"class" : "_zs fwb"})
-    pageCategory = soup.findAll("div", {"class" : "_dew _dj_"})
+    pageName = soup.findAll("div", {"class" : "fsl fwb fcb"})
+    
+    pageCategory = soup.findAll("div", {"class" : "_5k4f"})
     tempList = []
     count=0
     r = re.compile('a href="(.*?)\?ref=')
     for x in pageName:
+        
+        #print x
+        
+        for y in x:
+            #print y
+            for z in y:
+                print z
+        
+        
+        raw_input()
+        
+    return tempList
+        
+    '''
         m = r.search(str(x))
         if m:
             pageCategory[count]
             tempList.append([uid,x.text,pageCategory[count].text,m.group(1)])
         count+=1
     return tempList
+    '''
 
 def parsePhotosby(html):
     soup = BeautifulSoup(html)  
@@ -1751,6 +1786,7 @@ def mainProcess(username):
     global uid
     
     loginFacebook(driver)
+    
     uid = convertUser2ID2(driver,username)
     if not uid:
         print "[!] Problem converting username to uid"
@@ -1758,6 +1794,7 @@ def mainProcess(username):
     else:
         print "[*] Uid:\t"+str(uid)
 
+    '''
     filename = username+'_apps.htm'
     if not os.path.lexists(filename):
         print "[*] Caching Facebook Apps Used By: "+username
@@ -1781,104 +1818,112 @@ def mainProcess(username):
         if "samsung" in x:
             result += "[*] User is using a Samsung Android device\n"
     print result
-
+    '''
+    
     #Caching Pages Liked - Start
     filename = username+'_pages.htm'
     if not os.path.lexists(filename):
         print "[*] Caching Pages Liked By: "+username
         html = downloadPagesLiked(driver,uid)
+        text_file = open(filename, "w")
+        text_file.write(html.encode('utf8'))
+        text_file.close()
+    else:
+        print "[*] Reading Pages Liked By: "+username
+        html = open(filename, 'r').read()
+        
+    dataList = parsePagesLiked(html)
+    
+    if len(dataList)>0:
+        write2Database('pagesLiked',dataList)
+    #Caching Pages Liked - End
+
+    return
+
+    filename = username+'_videosBy.htm'
+    if not os.path.lexists(filename):
+        print "[*] Caching Videos Liked By: "+username
+        html = downloadVideosBy(driver,uid)
+        text_file = open(filename, "w")
+        text_file.write(html.encode('utf8'))
+        text_file.close()
+    else:
+        html = open(filename, 'r').read()
+        dataList = parseVideosBy(html)
+        
+    if len(dataList)>0:
+        write2Database('videosBy',dataList)
+
+    filename = username+'_photosOf.htm'
+    if not os.path.lexists(filename):
+            print "[*] Caching Photos Of: "+username
+            html = downloadPhotosOf(driver,uid)
             text_file = open(filename, "w")
             text_file.write(html.encode('utf8'))
             text_file.close()
-        else:
+    else:
             html = open(filename, 'r').read()
-        dataList = parsePagesLiked(html)
-        if len(dataList)>0:
-            write2Database('pagesLiked',dataList)
-    #Caching Pages Liked - End
-
-        filename = username+'_videosBy.htm'
-        if not os.path.lexists(filename):
-            print "[*] Caching Videos Liked By: "+username
-            html = downloadVideosBy(driver,uid)
-        text_file = open(filename, "w")
-        text_file.write(html.encode('utf8'))
-                text_file.close()
-        else:
-                html = open(filename, 'r').read()
-        dataList = parseVideosBy(html)
-        if len(dataList)>0:
-            write2Database('videosBy',dataList)
-
-        filename = username+'_photosOf.htm'
-        if not os.path.lexists(filename):
-                print "[*] Caching Photos Of: "+username
-                html = downloadPhotosOf(driver,uid)
-                text_file = open(filename, "w")
-                text_file.write(html.encode('utf8'))
-                text_file.close()
-        else:
-                html = open(filename, 'r').read()
-        dataList = parsePhotosOf(html)
-        write2Database('photosOf',dataList)
-        
-        filename = username+'_photosBy.htm'
-        if not os.path.lexists(filename):
-                print "[*] Caching Photos By: "+username
-                html = downloadPhotosOf(driver,uid)
-                text_file = open(filename, "w")
-                text_file.write(html.encode('utf8'))
-                text_file.close()
-        else:
-                html = open(filename, 'r').read()
-        dataList = parsePhotosOf(html)
-        write2Database('photosBy',dataList)        
+    dataList = parsePhotosOf(html)
+    write2Database('photosOf',dataList)
+    
+    filename = username+'_photosBy.htm'
+    if not os.path.lexists(filename):
+            print "[*] Caching Photos By: "+username
+            html = downloadPhotosOf(driver,uid)
+            text_file = open(filename, "w")
+            text_file.write(html.encode('utf8'))
+            text_file.close()
+    else:
+            html = open(filename, 'r').read()
+    dataList = parsePhotosOf(html)
+    write2Database('photosBy',dataList)        
 
     #Disable
     filename = username+'_photosLiked.htm'
     print filename
-        if not os.path.lexists(filename):
-            print "[*] Caching Photos Liked By: "+username
-                html = downloadPhotosLiked(driver,uid)
-                text_file = open(filename, "w")
-                text_file.write(html.encode('utf8'))
-                text_file.close()
-        else:
-                html = open(filename, 'r').read()
-        dataList = parsePhotosLiked(html)
-        print "[*] Writing "+str(len(dataList))+" records to table: photosLiked"
-        #write2Database('photosLiked',dataList)
-
-        filename = username+'_photoscommented.htm'
-        print filename
-        if not os.path.lexists(filename):
-            print "[*] Caching Commented On By: "+username
-                html = downloadPhotosCommented(driver,uid)
-                text_file = open(filename,"w")
-                text_file.write(html.encode('utf8'))
-                text_file.close()
-        else:
-                html = open(filename, 'r').read()
-        dataList = parsePhotosCommented(html)
-        write2Database('photosCommented',dataList)
-
-        filename = username+'_friends.htm'
-        print filename
-        if not os.path.lexists(filename):
-            print "[*] Caching Friends Page of: "+username
-                html = downloadFriends(driver,uid)
-                text_file = open(filename, "w")
-                text_file.write(html.encode('utf8'))
-                text_file.close()
-        else:
-                html = open(filename, 'r').read()
-        if len(html.strip())>1:
-                dataList = parseFriends(html)
-                print "[*] Writing Friends List to Database: "+username
-                write2Database('friends',dataList)
+    if not os.path.lexists(filename):
+        print "[*] Caching Photos Liked By: "+username
+        html = downloadPhotosLiked(driver,uid)
+        text_file = open(filename, "w")
+        text_file.write(html.encode('utf8'))
+        text_file.close()
     else:
-            print "[*] Extracting Friends from Likes/Comments: "+username
-                write2Database('friends',sidechannelFriends(uid))   
+        html = open(filename, 'r').read()
+    dataList = parsePhotosLiked(html)
+    print "[*] Writing "+str(len(dataList))+" records to table: photosLiked"
+    #write2Database('photosLiked',dataList)
+
+    filename = username+'_photoscommented.htm'
+    print filename
+    if not os.path.lexists(filename):
+        print "[*] Caching Commented On By: "+username
+        html = downloadPhotosCommented(driver,uid)
+        text_file = open(filename,"w")
+        text_file.write(html.encode('utf8'))
+        text_file.close()
+    else:
+        html = open(filename, 'r').read()
+    dataList = parsePhotosCommented(html)
+    write2Database('photosCommented',dataList)
+
+    filename = username+'_friends.htm'
+    print filename
+    if not os.path.lexists(filename):
+        print "[*] Caching Friends Page of: "+username
+        html = downloadFriends(driver,uid)
+        text_file = open(filename, "w")
+        text_file.write(html.encode('utf8'))
+        text_file.close()
+    else:
+        html = open(filename, 'r').read()
+            
+    if len(html.strip())>1:
+        dataList = parseFriends(html)
+        print "[*] Writing Friends List to Database: "+username
+        write2Database('friends',dataList)
+    else:
+        print "[*] Extracting Friends from Likes/Comments: "+username
+        write2Database('friends',sidechannelFriends(uid))   
                 
         c = conn.cursor()
         c.execute('select * from friends where sourceUID=?',(uid,))
@@ -1909,12 +1954,12 @@ def mainProcess(username):
         filename = username+'.htm'
         if not os.path.lexists(filename):
             print "[*] Caching Timeline Page of: "+username
-                html = downloadTimeline(username)
-                text_file = open(filename, "w")
-                text_file.write(html.encode('utf8'))
-                text_file.close()
+            html = downloadTimeline(username)
+            text_file = open(filename, "w")
+            text_file.write(html.encode('utf8'))
+            text_file.close()
         else:
-                html = open(filename, 'r').read()
+            html = open(filename, 'r').read()
         dataList = parseTimeline(html,username)
 
 
@@ -1960,9 +2005,9 @@ def mainProcess(username):
     createMaltego(username)
     cprint("[*] Maltego file has been created","white")
 
-        driver.close()
-        driver.quit
-        conn.close()
+    driver.close()
+    driver.quit
+    conn.close()
 
 
 def options(arguments):
